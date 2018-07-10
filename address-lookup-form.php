@@ -1,5 +1,35 @@
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css" integrity="sha384-9gVQ4dYFwwWSjIDZnLEWnxCjeSWFphJiwGPXr1jddIhOegiu1FwO5qRGvFXOdJZ4" crossorigin="anonymous">
+<?php 
 
+$ch = curl_init();
+curl_setopt($ch, CURLOPT_URL,"https://oauth.nzpost.co.nz/as/token.oauth2");
+curl_setopt($ch, CURLOPT_POST, 1);
+curl_setopt($ch, CURLOPT_POSTFIELDS,
+    "grant_type=client_credentials&client_id=YOUR_CLIENT_ID&client_secret=YOUR_CLIENT_SECRET");
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+$server_output = curl_exec ($ch);
+
+curl_close ($ch);
+$json = json_decode($server_output, true);
+$access_token = $json["access_token"];
+
+#Curl Request for Parsel Address token API with Different Client ID and Secret
+$curl = curl_init();
+curl_setopt($curl, CURLOPT_URL,"https://oauth.nzpost.co.nz/as/token.oauth2");
+curl_setopt($curl, CURLOPT_POST, 1);
+curl_setopt($curl, CURLOPT_POSTFIELDS,
+    "grant_type=client_credentials&client_id=YOUR_CLIENT_ID&client_secret=YOUR_CLIENT_SECRET");
+curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+$output = curl_exec ($curl);
+
+curl_close ($curl);
+$json = json_decode($output, true);
+$parsel_addr_access_token = $json["access_token"];
+
+?>
+
+<input type="hidden" id="access_token" name="access_token" value="<?php echo $access_token; ?>">
+<input type="hidden" id="parsel_addr_access_token" name="parsel_addr_access_token" value="<?php echo $parsel_addr_access_token; ?>">
 <div id="sf3" class="frm" style="display: none;">
     <fieldset>
         <legend>Address</legend>
@@ -58,10 +88,11 @@
 var result_array = [];
 $("#primary_address_street").autocomplete({
     source: function (request, response) {
+        var access_token = document.getElementById("access_token").value;
         $.ajax({
           url: "https://api.nzpost.co.nz/addresschecker/1.0/find",
           beforeSend: function(xhr) {
-             xhr.setRequestHeader("Authorization", "Bearer "+ YOUR_ACCESS_TOKEN)
+             xhr.setRequestHeader("Authorization", "Bearer "+ access_token)
              xhr.setRequestHeader( "Accept", "application/json")
          },
          data: {
@@ -88,10 +119,11 @@ $("#primary_address_street").autocomplete({
             }
         }
         dpid = dpid_array[1];
+        var parsel_addr_access_token = document.getElementById("parsel_addr_access_token").value;
         $.ajax({
           url: "https://api.nzpost.co.nz/parceladdress/2.0/domestic/addresses/dpid/"+dpid,
           beforeSend: function(xhr) {
-             xhr.setRequestHeader("Authorization", "Bearer "+ YOUR_ACCESS_TOKEN)
+             xhr.setRequestHeader("Authorization", "Bearer "+ parsel_addr_access_token)
              xhr.setRequestHeader( "Accept", "application/json")
          },
          success: function (data) {
